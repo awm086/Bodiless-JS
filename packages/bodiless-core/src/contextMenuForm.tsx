@@ -71,7 +71,7 @@ export const ContextMenuForm = <D extends object>({
   return (
     <Form
       onSubmit={(values: D) => {
-        if (!submitValues(values)) {
+        if (!submitValues || !submitValues(values)) {
           closeForm();
         }
       }}
