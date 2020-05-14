@@ -131,10 +131,25 @@ const formGitCommit = (client: Client) => contextMenuForm({
 
 const formGitPull = (client: Client) => contextMenuForm({
   submitValues: (values : any) => {
-    console.log(values);
-    // console.log('in submit values', values);
-    // const { allowed } = values;
-    // if (!allowed) return false;
+    const { allowed } = values;
+    if (!allowed) return false;
+    return true;
+  },
+})(({ ui }: any) => {
+  const { ComponentFormTitle } = getUI(ui);
+  return (
+    <>
+      <ComponentFormTitle>Pull Changes</ComponentFormTitle>
+      <RemoteChanges client={client} />
+    </>
+  );
+});
+
+const formGitPullV2 = (client: Client) => contextMenuForm({
+  submitValues: (values : any) => {
+    console.log('in submit values', values);
+    const { allowed } = values;
+    if (!allowed) return false;
     return true;
   },
 })(({ ui }: any) => {
@@ -146,7 +161,6 @@ const formGitPull = (client: Client) => contextMenuForm({
     </>
   );
 });
-
 
 const formGitReset = (client: Client, context: any) => contextMenuForm({
   submitValues: () => {
@@ -206,6 +220,12 @@ const getMenuOptions = (client: Client = defaultClient, context: any): TMenuOpti
       label: 'Pull',
       icon: 'cloud_download',
       handler: () => formGitPull(client),
+    },
+    {
+      name: 'Pull2',
+      label: 'Pull2',
+      icon: 'cloud_download',
+      handler: () => formGitPullV2(client),
     },
     {
       name: 'resetchanges',

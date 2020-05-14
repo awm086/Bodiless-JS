@@ -13,14 +13,13 @@
  */
 
 import React, {
-  useState, useEffect, FC, useCallback, SetStateAction, Dispatch,
+  useState, useEffect, FC, useCallback,
 } from 'react';
+// @ts-ignore
 import { useEditContext, ContextMenuForm } from '@bodiless/core';
 import { Spinner } from '@bodiless/ui';
 import { isEmpty } from 'lodash';
 import { AxiosResponse } from 'axios';
-import { stat } from 'fs-extra';
-
 
 enum States {
   Initial,
@@ -115,7 +114,7 @@ const useApiOnEffect = ({
       break;
     case States.Submitted:
       client.getChanges().then(
-        data => setState({ current: States.Pulled, data }),
+        (data: any) => setState({ current: States.Pulled, data }),
       );
       setState({ current: States.Pulling });
       break;
