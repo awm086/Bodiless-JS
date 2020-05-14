@@ -17,6 +17,9 @@ import React, {
 } from 'react';
 import { useEditContext, ContextMenuForm } from '@bodiless/core';
 import { Spinner } from '@bodiless/ui';
+import { isEmpty } from 'lodash';
+import { AxiosResponse } from 'axios';
+import { stat } from 'fs-extra';
 
 
 enum States {
@@ -40,21 +43,31 @@ enum ChangeStatus {
   Unknown,
 }
 
-const analyzeChanges: (s: State) => ChangeStatus = (state: State) => {
-  if (state.current !== States.GotStatus) return ChangeStatus.Unknown;
-  // @TODO Do a real analysis of the changes.
-  console.log(state.data);
-  return state.data.upstream ? ChangeStatus.CanBePulled : ChangeStatus.NoneAvailable;
+type Upstream = {
+  branch: string;
+  commits: [string];
+  files: [string];
 };
 
-const GotStatus: FC<{state: State}> = ({ state }) => {
+const analyzeChanges: (s: State) => ChangeStatus = (state: State) => {
+  const { commits, files } = state.data.upstream as Upstream;
+  if (isEmpty(commits)) {
+    return ChangeStatus.NoneAvailable;
+  }
+  if (files.some(file => file.includes('package-lock.json'))) {
+    return ChangeStatus.CannotBePulled;
+  }
+  return ChangeStatus.CanBePulled;
+};
+
+const Status: FC<{state: State}> = ({ state }) => {
   switch (analyzeChanges(state)) {
     case ChangeStatus.CanBePulled:
-      return <>Changes available.  Check to continue.</>;
+      return <>There are changes ready to be pulled. Click check (✓) to initiate.</>;
     case ChangeStatus.NoneAvailable:
       return <>No changes available</>;
     default:
-      return <>Changes available but they can't be pulled</>;
+      return <>Upstream changes are available but cannot be fetched via the UI</>;
   }
 };
 
@@ -64,20 +77,26 @@ const Pulled: FC<{state: State}> = ({ state }) => (
     : (<>Operation Successful</>)
 );
 
+const Wrapper = () => (
+  <div className="bl-pt-3">
+    <Spinner color="bl-bg-white" />
+  </div>
+);
+
 const Content: FC<{state: State}> = ({ state }) => {
   switch (state.current) {
     case States.GotStatus:
-      return <GotStatus state={state} />;
+      return <Status state={state} />;
     case States.Pulled:
       return <Pulled state={state} />;
     default:
-      return <Spinner />;
+      return <Wrapper />;
   }
 };
 
 const useApiOnEffect = ({
   state, setState, client, context,
-}) => useEffect(() => {
+}: any) => useEffect(() => {
   switch (state.current) {
     case States.Initial:
       context.showPageOverlay({
@@ -85,25 +104,31 @@ const useApiOnEffect = ({
         maxTimeoutInSeconds: 10,
       });
       client.getChanges().then(
-        data => {
+        (response: AxiosResponse) => {
+          const { data } = response;
           setState({ current: States.GotStatus, data });
           context.hidePageOverlay();
         },
       );
+      // @Todo catch error.
       setState({ current: States.GettingStatus });
       break;
     case States.Submitted:
-      pullChangesViaAPI().then(
+      client.getChanges().then(
         data => setState({ current: States.Pulled, data }),
       );
       setState({ current: States.Pulling });
       break;
+    default:
+      break;
   }
 }, [state, setState]);
 
-const pullChangesViaAPI = () => Promise.resolve({});
+type Props = {
+  client: any;
+};
 
-const PullChangesForm = ({ client }) => {
+const PullChangesForm = ({ client } : Props) => {
   const context = useEditContext();
   const [state, setState] = useState<State>({
     current: States.Initial,
@@ -113,14 +138,16 @@ const PullChangesForm = ({ client }) => {
   });
 
   const submitValues = useCallback(() => {
+    console.log('in inner submitValues', state.data);
     if (analyzeChanges(state.data) === ChangeStatus.CanBePulled) {
       setState({ current: States.Submitted });
       return true;
     }
+    return false;
   }, [state]);
 
   return (
-    <ContextMenuForm submitValues={submitValues}>
+    <ContextMenuForm submitValues={submitValues} closeForm={() => {}}>
       {() => <Content state={state} />}
     </ContextMenuForm>
   );
