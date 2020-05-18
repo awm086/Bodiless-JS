@@ -1,4 +1,4 @@
-# Bodiless-JS Test Site
+# Bodiless-JS Test SiteX
 
 Example site for testing bodiless.
 
