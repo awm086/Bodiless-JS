@@ -25,14 +25,14 @@ import {
 import { Div } from '@bodiless/fclasses';
 import Layout from '../../../components/Layout';
 
-const useMenuOptions = () => [{
+const useGetMenuOptions = () => () => [{
   icon: 'anchor',
   label: 'Test',
   name: 'form-test',
 }];
 const Test = flowRight(
   withCompoundForm({
-    useMenuOptions,
+    useGetMenuOptions,
     name: 'Test',
     id: 'test',
     peer: true,
@@ -65,7 +65,7 @@ const asTestFormSnippet = (nodeKey: WithNodeKeyProps, defaultData: any) => flowR
   withNodeKey(nodeKey),
   withNode,
   withNodeDataHandlers(defaultData),
-  withEditFormSnippet({ renderForm: () => <TestSnippet {...defaultData} /> }),
+  withEditFormSnippet({ render: () => <TestSnippet {...defaultData} /> }),
   withoutProps('setComponentData'),
   withData,
 );

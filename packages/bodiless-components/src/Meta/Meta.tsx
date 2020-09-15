@@ -48,9 +48,7 @@ const withTitle$ = () => (
   </HelmetComponent>
 );
 
-const withMeta$ = (options: Options) => (
-  HelmetComponent: CT<BaseProps>,
-) => ({ children, content, ...rest }: Props) => (
+const withMeta$ = (options: Options) => (HelmetComponent: CT<BaseProps>,) => ({ children, content, ...rest }: Props) => (
   <HelmetComponent {...rest}>
     {children}
     {content && <meta name={options.name} content={content} />}

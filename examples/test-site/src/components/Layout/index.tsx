@@ -35,7 +35,6 @@ const Layout = ({ children } : any) => (
 
     <SeoHelmet />
     <GTMHelmetWithForm />
-    <SiteGTMHelmetEvent />
     <SiteHeader />
     <Container>
       {children}

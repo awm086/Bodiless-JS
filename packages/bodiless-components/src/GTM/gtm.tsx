@@ -14,8 +14,17 @@
 
 import React, { ComponentType as CT } from 'react';
 import { stripIndent } from 'common-tags';
-import { useNode } from '@bodiless/core';
+import {
+  ifEditable,
+  useNode, withData,
+  withNode,
+  withNodeDataHandlers,
+  withNodeKey,
+  WithNodeKeyProps, withoutProps,
+  withSidecarNodes,
+} from '@bodiless/core';
 import * as _ from 'lodash';
+import { withGTMSnippet, withMetaSnippet } from '..';
 
 type GtmEventData = {
   content: string;
@@ -37,12 +46,18 @@ const generateDataLayer = (dataLayer: any, dataLayerName: string) => {
 };
 
 const tagManagerEnabled = (process.env.GOOGLE_TAGMANAGER_ENABLED || '1') === '1';
-const withEvent = (
+
+const withEvent$ = (
   dataLayerName: string,
   defaultPageData: GtmDefaultPageData,
   nodeKey: string,
   nodeCollection: string,
 ) => (HelmetComponent: CT) => (props: any) => {
+  console.log('datalyernmae', dataLayerName);
+  console.log('defaultPageData', defaultPageData);
+  console.log('nodeKey', nodeKey);
+  console.log('nodeCollection', nodeKey);
+
   // @todo: fixme condition for testing.
   if ((process.env.NODE_ENV === 'production' && tagManagerEnabled) || 1) {
     const { children, ...rest } = props;
@@ -58,5 +73,19 @@ const withEvent = (
   }
   return <></>;
 };
+
+const withHeadElement = (renderHoc: Function) => (options: any) => (
+  nodeKey?: WithNodeKeyProps, defaultContent?: string,
+) => withSidecarNodes(
+  withNodeKey(nodeKey),
+  withNode,
+  withNodeDataHandlers({ content: defaultContent }),
+  ifEditable(withGTMSnippet({ ...options })),
+  withoutProps('setComponentData'),
+  withData,
+  renderHoc(options),
+);
+
+const withEvent = withHeadElement(withEvent$);
 
 export default withEvent;

@@ -40,25 +40,31 @@ const SiteGTMHelmetEvent = flowRight(
 
 const useGetMenuOptions = () => {
   const context = useEditContext();
-  return () => ([
+  return [
     {
       name: 'gtm',
       isHidden: () => !context.isEdit,
-      icon: 'category',
-      label: 'gtm',
+      icon: 'local_offer',
+      label: 'GTM',
     },
-  ]);
+  ];
 };
 
-const GTMFormHeader = {
-  title: 'GTM Data Management',
-  description: `Enter the page level data used for GTM. 
-  This is data needed for GTM that will go in the page header.`,
-};
-
-export const GTMHelmetWithForm = flowRight(
-  withGTMForm(useGetMenuOptions, GTMFormHeader),
-  asBodilessHelmet('datalayer'),
-)(Helmet);
+// const withGTMPageType = withEvent({
+//   name: 'pagetype',
+//   label: 'Page Type',
+// });
+//
+// const GTMFormHeader = {
+//   title: 'GTM Data Management',
+//   description: `Enter the page level data used for GTM.
+//   This is data needed for GTM that will go in the page header.`,
+// };
+//
+// export const GTMHelmetWithForm = flowRight(
+//   asBodilessHelmet('datalayer'),
+//   withGTMForm(useGetMenuOptions, GTMFormHeader),
+//   withGTMPageType('page-loaded', 'ddd'),
+// )(Helmet);
 
 export default SiteGTMHelmetEvent;
