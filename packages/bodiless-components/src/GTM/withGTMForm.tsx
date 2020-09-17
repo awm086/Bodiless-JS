@@ -20,6 +20,7 @@ export type HeaderProps = {
 export type GTMSnippetOptions = {
   name: string,
   label: string,
+  scope?: string,
   useFormElement?: Function,
   placeholder?: string,
   submitHandler?: Function,
@@ -44,12 +45,12 @@ export const withGTMSnippet = (
   },
   submitValueHandler: (values: any) => {
     const { name, submitHandler: nextSubmitHandler } = options;
-    const submitValues = { page: { [name]: values[name] } };
+    const submitValues = { content: { [name]: values[name] } };
     return nextSubmitHandler ? nextSubmitHandler(submitValues) : submitValues;
   },
   initialValueHandler: (values) => {
     const { name, initalValueHandler: nextInitialValuesHandler } = options;
-    const initialValues = { [name]: values.content };
+    const initialValues = { [name]: values.content[name] };
     return nextInitialValuesHandler ? nextInitialValuesHandler(initialValues) : initialValues;
   },
 });

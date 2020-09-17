@@ -92,9 +92,9 @@ const asTestableFlowContainer = withDesign({
 const ProductFlowContainer = asTestableFlowContainer(FlowContainerDefault);
 
 const ExampleGTMHelmetEvent = flowRight(
-  asBodilessHelmet('datalayer'),
-  // On product pages, we may add product related datalayer info:
-  withEvent('digitalData', { event: 'Product Viewed' }, 'product-viewed'),
+  // asBodilessHelmet('datalayer'),
+  // // On product pages, we may add product related datalayer info:
+  // withEvent('digitalData', { event: 'Product Viewed' }, 'product-viewed'),
 )(Helmet);
 
 export default (props: any) => (

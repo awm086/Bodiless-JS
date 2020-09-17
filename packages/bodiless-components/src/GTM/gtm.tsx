@@ -12,27 +12,43 @@
  * limitations under the License.
  */
 
-import React, { ComponentType as CT } from 'react';
+import React, { ComponentType as CT, PropsWithChildren } from 'react';
 import { stripIndent } from 'common-tags';
 import {
   ifEditable,
-  useNode, withData,
+  withData,
   withNode,
   withNodeDataHandlers,
   withNodeKey,
-  WithNodeKeyProps, withoutProps,
+  WithNodeKeyProps,
+  withoutProps,
   withSidecarNodes,
 } from '@bodiless/core';
 import * as _ from 'lodash';
-import { withGTMSnippet, withMetaSnippet } from '..';
+import { HelmetProps } from 'react-helmet';
+import { withGTMSnippet } from './withGTMForm';
+import { ifHasTypeDeclarations } from 'typedoc-plugin-markdown/dist/resources/helpers/if-has-type-declarations';
 
 type GtmEventData = {
   content: string;
 };
 
-type GtmDefaultPageData = {
+type DataLayer = {
+  name: string;
   event: string;
   page: object;
+};
+
+type BaseProps = PropsWithChildren<HelmetProps>;
+
+type Data = {
+  content: string;
+};
+type Props = BaseProps & Data;
+
+type BasicOptions = {
+  defaultDataLayer: DataLayer;
+  editableDataLayer?: any;
 };
 
 const generateDataLayer = (dataLayer: any, dataLayerName: string) => {
@@ -47,45 +63,49 @@ const generateDataLayer = (dataLayer: any, dataLayerName: string) => {
 
 const tagManagerEnabled = (process.env.GOOGLE_TAGMANAGER_ENABLED || '1') === '1';
 
-const withEvent$ = (
-  dataLayerName: string,
-  defaultPageData: GtmDefaultPageData,
-  nodeKey: string,
-  nodeCollection: string,
-) => (HelmetComponent: CT) => (props: any) => {
-  console.log('datalyernmae', dataLayerName);
-  console.log('defaultPageData', defaultPageData);
-  console.log('nodeKey', nodeKey);
-  console.log('nodeCollection', nodeKey);
-
-  // @todo: fixme condition for testing.
+const withGTMEvent$ = (options: BasicOptions) => (
+  HelmetComponent: CT<BaseProps>,
+) => ({ children, content, ...rest }: Props) => {
+  const { defaultDataLayer, editableDataLayer } = options;
+  // @fixme: remove (|| 1) added   for testing.
   if ((process.env.NODE_ENV === 'production' && tagManagerEnabled) || 1) {
-    const { children, ...rest } = props;
-    const { node } = useNode(nodeCollection);
-    const { data } = node.child<GtmEventData>(nodeKey);
-    const merged = _.merge({}, defaultPageData, data);
+    // @todo: how to merge product vs page info?
+    // Build the data structure based on the scope and value form content.
+    let data = {};
+    // Get the datalyer name to be used in the script.
+    const { name } = defaultDataLayer;
+    // do we have editable datalayer snippet?
+    if (editableDataLayer) {
+      const { scope } = editableDataLayer;
+      // Build the data object i.e. { page: {pageType: 'myType'}}
+      data = { [scope]: content };
+    }
+    // Merge the data into the default datalayer data.
+    const merged = _.merge({}, options.defaultDataLayer, data);
     return (
       <HelmetComponent {...rest}>
         {children}
-        <script>{generateDataLayer(merged, dataLayerName)}</script>
+        <script>{generateDataLayer(merged, name)}</script>
       </HelmetComponent>
     );
   }
   return <></>;
 };
 
-const withHeadElement = (renderHoc: Function) => (options: any) => (
+const withHeadElement = (renderHoc: Function) => (options: BasicOptions) => (
   nodeKey?: WithNodeKeyProps, defaultContent?: string,
-) => withSidecarNodes(
-  withNodeKey(nodeKey),
-  withNode,
-  withNodeDataHandlers({ content: defaultContent }),
-  ifEditable(withGTMSnippet({ ...options })),
-  withoutProps('setComponentData'),
-  withData,
-  renderHoc(options),
-);
-
-const withEvent = withHeadElement(withEvent$);
+) => {
+  const { editableDataLayer } = options;
+  return withSidecarNodes(
+    withNodeKey(nodeKey),
+    withNode,
+    withNodeDataHandlers({ content: defaultContent }),
+    ifEditable(withGTMSnippet({ ...editableDataLayer })),
+    withoutProps('setComponentData'),
+    withData,
+    renderHoc(options),
+  );
+};
+const withEvent = withHeadElement(withGTMEvent$);
 
 export default withEvent;

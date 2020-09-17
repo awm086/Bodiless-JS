@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Copyright © 2020 Johnson & Johnson
  *
@@ -21,23 +22,6 @@ import {
 } from '@bodiless/components';
 import { useEditContext } from '@bodiless/core';
 
-const SiteGTMHelmetEvent = flowRight(
-  asBodilessHelmet('datalayer'),
-  // @ts-ignore
-  withEvent(
-    'digitalData',
-    {
-      event: 'Page Loaded',
-      page: {
-        country: 'US',
-        language: 'EN',
-        hostname: 'bodilessjs.com',
-      },
-    },
-    'page-loaded',
-  ),
-)(Helmet);
-
 const useGetMenuOptions = () => {
   const context = useEditContext();
   return [
@@ -50,21 +34,47 @@ const useGetMenuOptions = () => {
   ];
 };
 
-// const withGTMPageType = withEvent({
-//   name: 'pagetype',
-//   label: 'Page Type',
-// });
-//
-// const GTMFormHeader = {
-//   title: 'GTM Data Management',
-//   description: `Enter the page level data used for GTM.
-//   This is data needed for GTM that will go in the page header.`,
-// };
-//
-// export const GTMHelmetWithForm = flowRight(
-//   asBodilessHelmet('datalayer'),
-//   withGTMForm(useGetMenuOptions, GTMFormHeader),
-//   withGTMPageType('page-loaded', 'ddd'),
-// )(Helmet);
+const withGTMEvent = withEvent(
+  {
+    defaultDataLayer: {
+      name: 'digitalData',
+      event: 'Page Loaded',
+      page: {
+        country: 'US',
+        language: 'EN',
+        hostname: 'bodilessjs.com',
+      },
+    },
+    editableDataLayer: {
+      scope: 'page',
+      name: 'pageType',
+      label: 'Page Type',
+    },
+    // editableDataLayer: [{
+    //   scope: 'page',
+    //   name: 'pageType',
+    //   label: 'Page Type',
+    // },
+    // {
+    //   scope: 'page',
+    //   name: 'pageType',
+    //   label: 'Page Type',
+    // },
+    // ],
+  },
+);
 
+const GTMFormHeader = {
+  title: 'GTM Data Management',
+  description: `Enter the page level data used for GTM.
+  This is data needed for GTM that will go in the page header.`,
+};
+
+const GTMHelmetWithForm = flowRight(
+  asBodilessHelmet('datalayer'),
+  withGTMForm(useGetMenuOptions, GTMFormHeader),
+  withGTMEvent('page-loaded', ''),
+)(Helmet);
+
+const SiteGTMHelmetEvent = GTMHelmetWithForm;
 export default SiteGTMHelmetEvent;
