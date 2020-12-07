@@ -12,9 +12,16 @@
  * limitations under the License.
  */
 
-module.exports = {
-  plugins: [
-    // eslint-disable-next-line
-    require('tailwindcss')('tailwind.config.js'),
-  ],
+ module.exports = {
+  /**
+   * page url that should be scraped
+   */
+  url: "https://pariet10.ru/",
+  /**
+   * crawler settings
+   */
+  crawler: {
+    maxDepth: 100,
+  },
+  trailingSlash: "remove",
 };
